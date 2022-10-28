@@ -1,5 +1,4 @@
 function initPage() {
-
     const cityEl = document.getElementById("enter-city");
     const searchEl = document.getElementById("search-button");
     const clearEl = document.getElementById("clear-history");
@@ -15,81 +14,58 @@ function initPage() {
     let searchHistory = JSON.parse(localStorage.getItem("search")) || [];
 
     // Assigning a unique API to a variable
-    const APIKey = "b022f189a04aed15bc2a98bbec86a8a7";
-
-    // fetch api data
-    // const api = "https://api.openweathermap.org/data/2.5/weather?q=" + "Broomfield" + "&appid=" + APIKey;
-    //     fetch(api)
-    //         .then(function(response){
-    //             return response.json();
-    //         })
-    //         .then(function(data){
-    //             console.log(data);
-    //         })
+    const APIKey = "84b79da5e5d7c92085660485702f4ce8";
 
     function getWeather(cityName) {
         // Execute a current weather get request from open weather api
         let queryURL = "https://api.openweathermap.org/data/2.5/weather?q=" + cityName + "&appid=" + APIKey;
-        fetch(queryURL)
+        axios.get(queryURL)
             .then(function (response) {
-                return response.json();
-            })
-            .then(function (data) {
-                console.log(data);
+
                 todayweatherEl.classList.remove("d-none");
 
                 // Parse response to display current weather
-                const currentDate = new Date(data.dt * 1000);
+                const currentDate = new Date(response.data.dt * 1000);
                 const day = currentDate.getDate();
                 const month = currentDate.getMonth() + 1;
                 const year = currentDate.getFullYear();
-                nameEl.innerHTML = data.name + " (" + month + "/" + day + "/" + year + ") ";
-                let weatherPic = data.weather[0].icon;
+                nameEl.innerHTML = response.data.name + " (" + month + "/" + day + "/" + year + ") ";
+                let weatherPic = response.data.weather[0].icon;
                 currentPicEl.setAttribute("src", "https://openweathermap.org/img/wn/" + weatherPic + "@2x.png");
-                currentPicEl.setAttribute("alt", data.weather[0].description);
-                currentTempEl.innerHTML = "Temperature: " + k2f(data.main.temp) + " &#176F";
-                currentHumidityEl.innerHTML = "Humidity: " + data.main.humidity + "%";
-                currentWindEl.innerHTML = "Wind Speed: " + data.wind.speed + " MPH";
-
-            });
+                currentPicEl.setAttribute("alt", response.data.weather[0].description);
+                currentTempEl.innerHTML = "Temperature: " + k2f(response.data.main.temp) + " &#176F";
+                currentHumidityEl.innerHTML = "Humidity: " + response.data.main.humidity + "%";
+                currentWindEl.innerHTML = "Wind Speed: " + response.data.wind.speed + " MPH";
                 
                 // Get UV Index
-                let lat = data.coord.lat;
-                let lon = data.coord.lon;
+                let lat = response.data.coord.lat;
+                let lon = response.data.coord.lon;
                 let UVQueryURL = "https://api.openweathermap.org/data/2.5/uvi/forecast?lat=" + lat + "&lon=" + lon + "&appid=" + APIKey + "&cnt=1";
-                fetch(UVQueryURL)
+                axios.get(UVQueryURL)
                     .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (data) {
-                        console.log(data);
                         let UVIndex = document.createElement("span");
                         
                         // When UV Index is good, shows green, when ok shows yellow, when bad shows red
-                        if (data[0].value < 4 ) {
+                        if (response.data[0].value < 4 ) {
                             UVIndex.setAttribute("class", "badge badge-success");
                         }
-                        else if (data[0].value < 8) {
+                        else if (response.data[0].value < 8) {
                             UVIndex.setAttribute("class", "badge badge-warning");
                         }
                         else {
                             UVIndex.setAttribute("class", "badge badge-danger");
                         }
-                        console.log(data[0].value)
-                        UVIndex.innerHTML = data[0].value;
+                        console.log(response.data[0].value)
+                        UVIndex.innerHTML = response.data[0].value;
                         currentUVEl.innerHTML = "UV Index: ";
                         currentUVEl.append(UVIndex);
                     });
                 
                 // Get 5 day forecast for this city
-                let cityID = data.id;
+                let cityID = response.data.id;
                 let forecastQueryURL = "https://api.openweathermap.org/data/2.5/forecast?id=" + cityID + "&appid=" + APIKey;
-                fetch(forecastQueryURL)
+                axios.get(forecastQueryURL)
                     .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (data) {
-
                         fivedayEl.classList.remove("d-none");
                         
                         //  Parse response to display forecast for next 5 days
@@ -97,7 +73,7 @@ function initPage() {
                         for (i = 0; i < forecastEls.length; i++) {
                             forecastEls[i].innerHTML = "";
                             const forecastIndex = i * 8 + 4;
-                            const forecastDate = new Date(data.list[forecastIndex].dt * 1000);
+                            const forecastDate = new Date(response.data.list[forecastIndex].dt * 1000);
                             const forecastDay = forecastDate.getDate();
                             const forecastMonth = forecastDate.getMonth() + 1;
                             const forecastYear = forecastDate.getFullYear();
@@ -108,19 +84,19 @@ function initPage() {
 
                             // Icon for current weather
                             const forecastWeatherEl = document.createElement("img");
-                            forecastWeatherEl.setAttribute("src", "https://openweathermap.org/img/wn/" + data.list[forecastIndex].weather[0].icon + "@2x.png");
-                            forecastWeatherEl.setAttribute("alt", data.list[forecastIndex].weather[0].description);
+                            forecastWeatherEl.setAttribute("src", "https://openweathermap.org/img/wn/" + response.data.list[forecastIndex].weather[0].icon + "@2x.png");
+                            forecastWeatherEl.setAttribute("alt", response.data.list[forecastIndex].weather[0].description);
                             forecastEls[i].append(forecastWeatherEl);
                             const forecastTempEl = document.createElement("p");
-                            forecastTempEl.innerHTML = "Temp: " + k2f(data.list[forecastIndex].main.temp) + " &#176F";
+                            forecastTempEl.innerHTML = "Temp: " + k2f(response.data.list[forecastIndex].main.temp) + " &#176F";
                             forecastEls[i].append(forecastTempEl);
                             const forecastHumidityEl = document.createElement("p");
-                            forecastHumidityEl.innerHTML = "Humidity: " + data.list[forecastIndex].main.humidity + "%";
+                            forecastHumidityEl.innerHTML = "Humidity: " + response.data.list[forecastIndex].main.humidity + "%";
                             forecastEls[i].append(forecastHumidityEl);
                         }
                     })
-            };
-            
+            });
+    }
 
     // Get history from local storage if any
     searchEl.addEventListener("click", function () {
