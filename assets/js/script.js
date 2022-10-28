@@ -50,8 +50,6 @@ function initPage() {
                 currentTempEl.innerHTML = "Temperature: " + k2f(data.main.temp) + " &#176F";
                 currentHumidityEl.innerHTML = "Humidity: " + data.main.humidity + "%";
                 currentWindEl.innerHTML = "Wind Speed: " + data.wind.speed + " MPH";
-
-            });
                 
                 // Get UV Index
                 let lat = data.coord.lat;
@@ -119,6 +117,7 @@ function initPage() {
                             forecastEls[i].append(forecastHumidityEl);
                         }
                     })
+                });
             };
             
 
